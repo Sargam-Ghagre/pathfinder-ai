@@ -25,7 +25,7 @@
 
 <hr />
 
-<h2>🛠 Tech Stack</h2>
+<h2>Tech Stack</h2>
 
 <ul>
   <li><strong>Framework:</strong> Next.js 14 (App Router)</li>
