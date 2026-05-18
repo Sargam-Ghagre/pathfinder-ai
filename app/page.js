@@ -71,18 +71,29 @@ const isDarkMode = resolvedTheme === "dark";
             Powerful Features for Your Career Growth
           </motion.h2>
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
                 {...fadeUp(i * 0.1)}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
+                className="h-full"
               >
-                <Card className="border-2 transition-colors duration-300 hover:border-primary">
-                  <CardContent className="flex flex-col items-center pt-6 text-center">
-                    {f.icon}
-                    <h3 className="mb-2 text-xl font-bold">{f.title}</h3>
-                    <p className="text-muted-foreground">{f.description}</p>
+                <Card className="h-full min-h-[320px] border-2 transition-colors duration-300 hover:border-primary">
+                  <CardContent className="flex h-full flex-col items-center gap-4 pt-8 text-center">
+                    
+                    <div className="mb-2">
+                      {f.icon}
+                    </div>
+
+                    <h3 className="text-xl font-bold leading-snug">
+                      {f.title}
+                    </h3>
+
+                    <p className="text-muted-foreground leading-relaxed">
+                      {f.description}
+                    </p>
+
                   </CardContent>
                 </Card>
               </motion.div>
