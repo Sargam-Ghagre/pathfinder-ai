@@ -12,6 +12,7 @@ import {
   PenBox,
 } from "lucide-react";
 import { Form } from "./ui/form";
+
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
@@ -108,23 +109,23 @@ export default function Footer() {
           </ul>
         </motion.div>
 
-        {/* Newsletter */}
-        <motion.div variants={fadeUp}>
-          <h3 className="text-xl md:text-2xl font-bold mb-4">Stay Updated</h3>
-          <Form className="flex flex-col gap-3">
-            <Input
-              type="email"
-              placeholder="Your email"
-              className="bg-gray-100 dark:bg-gray-800 text-black dark:text-white px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-3 focus:ring-primary transition-colors"
-            />
-            <Button
-              type="submit"
-              className="bg-primary hover:bg-primary/90 text-white py-2 rounded-md transition dark:text-black"
-            >
-              Subscribe
-            </Button>
-          </Form>
-        </motion.div>
+{/* Newsletter */}
+<motion.div variants={fadeUp}>
+  <h3 className="text-xl md:text-2xl font-bold mb-4">Stay Updated</h3>
+  <div className="flex flex-col gap-3">
+    <Input
+      type="email"
+      placeholder="Your email"
+      className="w-full px-3 py-2.5 rounded-lg text-sm bg-white/6 border border-white/12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/60 focus:bg-violet-500/8 transition-all duration-150"
+    />
+    <Button
+      type="button"
+      className="w-full bg-violet-700 hover:bg-violet-600 text-white text-sm font-medium py-2.5 rounded-lg transition-all duration-150"
+    >
+      Subscribe
+    </Button>
+  </div>
+</motion.div>
 
         {/* Social */}
         <motion.div variants={fadeUp}>
