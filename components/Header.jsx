@@ -13,6 +13,7 @@ import {
   GraduationCap,
   ChevronDown,
   StarsIcon,
+  ScanText,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -144,6 +145,14 @@ export default function Header() {
                 >
                   <Bot className="h-4 w-4" />
                   AI Assistant
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => go("/ats-analyzer")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <ScanText className="h-4 w-4" />
+                  ATS Analyzer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
