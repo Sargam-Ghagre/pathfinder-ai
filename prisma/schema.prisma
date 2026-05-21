@@ -21,8 +21,12 @@ model User {
   skills          String[]
   assessments     Assessment[]
   coverLetter     CoverLetter[]
+
   resume          Resume?
   industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
+
+  atsAnalyses     ATSAnalysis[]
+
 }
 
 model Assessment {
@@ -64,6 +68,28 @@ model CoverLetter {
 
   @@index([userId])
 }
+
+
+
+model ATSAnalysis {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  resumeContent   String   @db.Text
+  jobDescription  String   @db.Text
+  jobTitle        String?
+  companyName     String?
+  atsScore        Float    // 0-100
+  matchedKeywords String[] // keywords found in both resume and JD
+  missingKeywords String[] // keywords in JD missing from resume
+  suggestions     Json[]   // [{category, tip}]
+  overallFeedback String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Combined Industry Trends and Salary Insights
 
 model IndustryInsight {
   id                String   @id @default(cuid())
