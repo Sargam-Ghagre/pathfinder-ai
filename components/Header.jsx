@@ -49,11 +49,9 @@ export default function Header() {
   const [clerkKeyless, setClerkKeyless] = useState(false);
 
   const isHomePage = pathname === "/";
-  const isDark = resolvedTheme === "dark";
 
   useEffect(() => setMounted(true), []);
 
-  // Scroll handler for background + active section
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
@@ -95,7 +93,8 @@ export default function Header() {
     return () => (active = false);
   }, []);
 
-  const logoSrc = mounted && resolvedTheme === "dark" ? "/white-logo.png" : "/logo.png";
+  const logoSrc =
+    mounted && resolvedTheme === "dark" ? "/white-logo.png" : "/logo.png";
 
   const go = async (href) => {
     if (!isSignedIn) return router.push("/sign-in");
@@ -122,9 +121,7 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? isDark
-            ? "bg-black/70 backdrop-blur-xl border-b border-white/10"
-            : "bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm"
+          ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
           : "bg-transparent"
       }`}
     >
@@ -145,10 +142,8 @@ export default function Header() {
             className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
             priority
           />
-          <span className={`hidden sm:block text-xl font-semibold tracking-tight ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}>
-            Pathfinder <span className="text-purple-600">AI</span>
+          <span className="hidden sm:block text-xl font-semibold tracking-tight text-foreground">
+            Pathfinder <span className="text-purple-600 dark:text-purple-400">AI</span>
           </span>
         </Link>
 
@@ -159,14 +154,10 @@ export default function Header() {
               <button
                 key={link.id}
                 onClick={() => scrollToSection(link.id)}
-                className={`relative text-sm font-medium transition-all duration-300 pb-1 ${
-                  isDark
-                    ? activeSection === link.id
-                      ? "text-white"
-                      : "text-gray-400 hover:text-white"
-                    : activeSection === link.id
-                    ? "text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
+                className={`relative text-sm font-medium transition-all duration-300 pb-1 group ${
+                  activeSection === link.id
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {link.label}
@@ -187,11 +178,7 @@ export default function Header() {
           <SignedIn>
             <Button
               variant="outline"
-              className={`hidden md:flex items-center gap-2 transition-all duration-300 ${
-                isDark
-                  ? "border-white/20 hover:bg-white/10 hover:text-white"
-                  : "border-gray-300 hover:bg-gray-100"
-              }`}
+              className="hidden md:flex items-center gap-2 hover:scale-105 transition-all duration-300"
               onClick={() => go("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
@@ -201,13 +188,7 @@ export default function Header() {
 
           <SignedOut>
             <SignInButton>
-              <Button
-                className={`font-medium transition-all duration-300 ${
-                  isDark
-                    ? "bg-white text-black hover:bg-white/90"
-                    : "bg-purple-600 text-white hover:bg-purple-700"
-                }`}
-              >
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-300 hover:scale-105">
                 Sign In
               </Button>
             </SignInButton>
