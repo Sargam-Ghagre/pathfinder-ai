@@ -3,8 +3,14 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  useAuth,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/nextjs";
 import {
   LayoutDashboard,
   FileText,
@@ -24,35 +30,75 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "./ui/Modetoggle";
 import { useTheme } from "next-themes";
-import { getUserOnboardingStatus } from "@/actions/user"; // server action
+import { getUserOnboardingStatus } from "@/actions/user";
+
+const NAV_LINKS = [
+  { id: "features", label: "Features" },
+  { id: "how-it-works", label: "How It Works" },
+  { id: "stats", label: "Stats" },
+];
 
 export default function Header() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const { isSignedIn } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [clerkKeyless, setClerkKeyless] = useState(false);
+
+  const isHomePage = pathname === "/";
+  const isDark = resolvedTheme === "dark";
 
   useEffect(() => setMounted(true), []);
 
+  // Scroll handler for background + active section
   useEffect(() => {
-    // Check dev status endpoint to detect Clerk keyless mode and show a banner
-    let mounted = true;
-    fetch('/api/dev/status')
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+
+      const sections = NAV_LINKS.map((link) => ({
+        id: link.id,
+        element: document.getElementById(link.id),
+      }));
+
+      const scrollPosition = window.scrollY + 100;
+
+      for (const section of sections) {
+        if (section.element) {
+          const { offsetTop, offsetHeight } = section.element;
+          if (
+            scrollPosition >= offsetTop &&
+            scrollPosition < offsetTop + offsetHeight
+          ) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/dev/status")
       .then((res) => res.json())
       .then((data) => {
-        if (mounted && data?.clerkKeyless) setClerkKeyless(true);
+        if (active && data?.clerkKeyless) setClerkKeyless(true);
       })
       .catch(() => {});
-    return () => (mounted = false);
+    return () => (active = false);
   }, []);
 
   const logoSrc = mounted && resolvedTheme === "dark" ? "/white-logo.png" : "/logo.png";
 
-  /** guarded navigation */
   const go = async (href) => {
     if (!isSignedIn) return router.push("/sign-in");
-
     try {
       const { isOnboarded } = await getUserOnboardingStatus();
       router.push(isOnboarded ? href : "/onboarding");
@@ -62,117 +108,116 @@ export default function Header() {
     }
   };
 
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - offset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    }
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? isDark
+            ? "bg-black/70 backdrop-blur-xl border-b border-white/10"
+            : "bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
       {clerkKeyless && (
-        <div className="w-full bg-yellow-100 text-yellow-800 text-sm py-1 text-center">
+        <div className="w-full bg-yellow-400/90 text-yellow-900 text-sm py-1 text-center">
           Clerk running in keyless dev mode — auth is disabled locally.
         </div>
       )}
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/">
+
+      <nav className="container mx-auto flex h-16 items-center justify-between px-6">
+        {/* Logo + Brand */}
+        <Link href="/" className="flex items-center gap-3 group">
           <Image
             src={logoSrc}
             alt="Pathfinder AI Logo"
-            width={500}
-            height={100}
-            className="h-12 w-auto object-contain"
+            width={42}
+            height={42}
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
             priority
           />
+          <span className={`hidden sm:block text-xl font-semibold tracking-tight ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}>
+            Pathfinder <span className="text-purple-600">AI</span>
+          </span>
         </Link>
 
-        <ModeToggle />
+        {/* Navigation Links - Only on homepage */}
+        {isHomePage && (
+          <div className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => scrollToSection(link.id)}
+                className={`relative text-sm font-medium transition-all duration-300 pb-1 ${
+                  isDark
+                    ? activeSection === link.id
+                      ? "text-white"
+                      : "text-gray-400 hover:text-white"
+                    : activeSection === link.id
+                    ? "text-gray-900"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {link.label}
+                <span
+                  className={`absolute bottom-0 left-0 h-0.5 bg-purple-500 transition-all duration-300 ${
+                    activeSection === link.id ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        )}
 
-        <div className="flex items-center space-x-2 md:space-x-4">
-          {/* -------- Signed-in navigation -------- */}
+        {/* Right Side */}
+        <div className="flex items-center gap-3">
+          <ModeToggle />
+
           <SignedIn>
-            {/* Dashboard button */}
             <Button
               variant="outline"
-              className="hidden md:inline-flex items-center gap-2"
+              className={`hidden md:flex items-center gap-2 transition-all duration-300 ${
+                isDark
+                  ? "border-white/20 hover:bg-white/10 hover:text-white"
+                  : "border-gray-300 hover:bg-gray-100"
+              }`}
               onClick={() => go("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
               Industry Insights
             </Button>
-            <Button
-              variant="ghost"
-              className="md:hidden w-10 h-10 p-0"
-              onClick={() => go("/dashboard")}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-            </Button>
-
-            {/* Growth Tools dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <StarsIcon className="h-4 w-4" />
-                  <span className="hidden md:block">Growth Tools</span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => go("/resume")}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <FileText className="h-4 w-4" />
-                  Build Resume
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => go("/ai-cover-letter")}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <PenBox className="h-4 w-4" />
-                  Cover Letter
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => go("/interview")}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <GraduationCap className="h-4 w-4" />
-                  Interview Prep
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => go("/ai-assistant")}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Bot className="h-4 w-4" />
-                  AI Assistant
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => go("/ats-analyzer")}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <ScanText className="h-4 w-4" />
-                  ATS Analyzer
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </SignedIn>
 
-          {/* -------- Signed-out button -------- */}
           <SignedOut>
             <SignInButton>
-              <Button variant="outline">Sign&nbsp;In</Button>
+              <Button
+                className={`font-medium transition-all duration-300 ${
+                  isDark
+                    ? "bg-white text-black hover:bg-white/90"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
+              >
+                Sign In
+              </Button>
             </SignInButton>
           </SignedOut>
 
-          {/* -------- Avatar -------- */}
           <SignedIn>
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-10 h-10",
-                  userButtonPopoverCard: "shadow-xl",
-                  userPreviewMainIdentifier: "font-semibold",
+                  avatarBox: "w-9 h-9 ring-2 ring-offset-2 ring-offset-background transition-all",
                 },
               }}
               afterSignOutUrl="/"
