@@ -12,6 +12,43 @@ import {
   buildSseErrorResponse,
 } from "@/lib/prompt-guard";
 
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream; charset=utf-8",
+  "Cache-Control": "no-cache, no-store, must-revalidate, no-transform",
+  Connection: "keep-alive",
+  "X-Accel-Buffering": "no",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+const encodeSseEvent = (encoder, event, payload) => {
+  const safePayload = payload ?? {};
+  return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(safePayload)}\n\n`);
+};
+
+const extractChunkText = (chunk) => {
+  if (!chunk) return "";
+
+  try {
+    const rawText = typeof chunk.text === "function" ? chunk.text() : chunk?.text;
+
+    if (rawText == null) return "";
+    if (typeof rawText === "string") return rawText;
+
+    return String(rawText);
+  } catch {
+    return "";
+  }
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: SSE_HEADERS,
+  });
+}
+
 export async function POST(request) {
   const { userId } = await auth();
   const endpoint = "/api/generate";
@@ -133,6 +170,18 @@ export async function POST(request) {
   const stream = new ReadableStream({
     async start(controller) {
       let fullResponse = "";
+      let streamClosed = false;
+
+      const safeEnqueue = (event, payload) => {
+        if (streamClosed) return;
+        controller.enqueue(encodeSseEvent(encoder, event, payload));
+      };
+
+      const safeClose = () => {
+        if (streamClosed) return;
+        streamClosed = true;
+        controller.close();
+      };
 
       try {
         const restrictedPrompt = buildSecurePrompt({
@@ -166,13 +215,11 @@ Rules:
         const result = await generateGeminiContentStream(restrictedPrompt);
 
         for await (const chunk of result.stream) {
-          const text = chunk.text();
+          const text = extractChunkText(chunk);
 
           if (text) {
             fullResponse += text;
-
-            const sseMessage = `data: ${JSON.stringify({ text })}\n\n`;
-            controller.enqueue(encoder.encode(sseMessage));
+            safeEnqueue("delta", { text });
           }
         }
 
@@ -197,29 +244,23 @@ Rules:
           }
         }
 
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
+        safeEnqueue("done", {
+          finalText: fullResponse,
+          hasContent: Boolean(fullResponse.trim()),
+        });
+        safeClose();
       } catch (error) {
         console.error("Gemini streaming error:", error?.message || error);
 
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({
-              error: error?.message || "Unknown error",
-            })}\n\n`
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
+        safeEnqueue("error", {
+          message: error?.message || "Unknown error",
+        });
+        safeClose();
       }
     },
   });
 
   return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Connection: "keep-alive",
-    },
+    headers: SSE_HEADERS,
   });
 }

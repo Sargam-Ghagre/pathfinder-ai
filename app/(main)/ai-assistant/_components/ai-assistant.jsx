@@ -265,27 +265,24 @@ export default function AIAssistant() {
     setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     setInput("");
 
-    await startStream(trimmed, conversationId);
+    const streamResult = await startStream(trimmed, conversationId);
+
+    if (streamResult?.status === "done" && streamResult.finalText?.trim()) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: streamResult.finalText,
+        },
+      ]);
+
+      reset();
+    }
     
     if (saveChatHistory) {
       fetchConversations();
     }
   };
-
-  useEffect(() => {
-    if (!isLoading && streamedText) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: streamedText,
-        },
-      ]);
-
-      reset();
-      fetchConversations();
-    }
-  }, [isLoading]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
