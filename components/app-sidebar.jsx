@@ -40,7 +40,7 @@ const MENU_GROUPS = [
       { href: "/ai-assistant", label: "AI Assistant", icon: <Bot className="h-4 w-4" /> },
       { href: "/ats-analyzer", label: "ATS Analyzer", icon: <ScanSearch className="h-4 w-4" /> },
       { href: "/interview", label: "Mock Interview", icon: <Mic className="h-4 w-4" /> },
-      { href: "/ai-assistant", label: "Career Coaching", icon: <Briefcase className="h-4 w-4" /> },
+      { href: "/ai-assistant?tab=coaching", label: "Career Coaching", icon: <Briefcase className="h-4 w-4" /> },
     ]
   },
   {
@@ -110,7 +110,7 @@ export default function AppSidebar() {
               {group.items.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
                 return (
-                  <Link key={link.href} href={link.href} onClick={() => isMobile && setIsOpen(false)} title={!isOpen && !isMobile ? link.label : undefined}>
+                  <Link key={`${link.href}-${link.label}`} href={link.href} onClick={() => isMobile && setIsOpen(false)} title={!isOpen && !isMobile ? link.label : undefined}>
                     <div className={`flex items-center ${isOpen || isMobile ? 'gap-3 px-3 py-2.5' : 'justify-center p-3'} rounded-xl transition-all duration-200 ${
                       isActive 
                         ? "bg-[#27272A]/80 text-white font-medium shadow-sm" 

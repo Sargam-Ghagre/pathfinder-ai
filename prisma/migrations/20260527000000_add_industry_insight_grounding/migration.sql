@@ -1,0 +1,2 @@
+ALTER TABLE "IndustryInsight"
+ADD COLUMN IF NOT EXISTS "isGrounded" BOOLEAN NOT NULL DEFAULT false;

@@ -86,6 +86,7 @@ model IndustryInsight {
   marketOutlook     String
   keyTrends         String[]
   recommendedSkills String[]
+  isGrounded        Boolean  @default(false)
   lastUpdated       DateTime @default(now())
   nextUpdate        DateTime
 

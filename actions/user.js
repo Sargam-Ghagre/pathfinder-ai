@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateAIInsights } from "./dashboard";
+import { getIndustryInsightRefreshTime } from "@/lib/industry-insights";
 
 /**
  * Updates the current user's profile with industry and other info.
@@ -21,6 +22,23 @@ export async function updateUser(data) {
   if (!user) throw new Error("User not found");
 
   try {
+    // Generate industry insights outside the DB transaction to avoid
+    // long-running external calls inside a DB tx (which can cause timeouts).
+    let precomputedInsights = null;
+    let existingInsight = await db.industryInsight.findUnique({
+      where: { industry: data.industry },
+    });
+
+    if (!existingInsight) {
+      try {
+        precomputedInsights = await generateAIInsights(data.industry);
+      } catch (e) {
+        // generateAIInsights already handles fallbacks, but guard here
+        console.error("Failed to generate insights pre-transaction:", e);
+        precomputedInsights = null;
+      }
+    }
+
     const result = await db.$transaction(
       async (tx) => {
         /* -----------------------------------------------------------
@@ -31,15 +49,13 @@ export async function updateUser(data) {
         });
 
         if (!industryInsight) {
-          const insights = await generateAIInsights(data.industry);
+          const insights = precomputedInsights ?? (await generateAIInsights(data.industry));
 
           industryInsight = await tx.industryInsight.create({
             data: {
               industry: data.industry,
               ...insights,
-              nextUpdate: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000 // +7 days
-              ),
+              nextUpdate: getIndustryInsightRefreshTime(),
             },
           });
         }
