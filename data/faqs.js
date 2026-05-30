@@ -12,7 +12,7 @@ export const faqs = [
   {
     question: "How accurate and up-to-date are Pathmentor Ai's industry insights?",
     answer:
-      "We update our industry insights weekly using advanced AI analysis of current market trends. This includes salary data, in-demand skills, and industry growth patterns. Our system constantly evolves to ensure you have the most relevant information for your career decisions.",
+      "We refresh our industry insights daily and ground salary data in current web search results when available. Each salary point includes source citations, and if search is unavailable we clearly label the result as an AI estimate.",
   },
   {
     question: "Is my data secure with Pathmentor Ai?",

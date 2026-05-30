@@ -1,23 +1,20 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET(request) {
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
 
     if (!query || typeof query !== "string" || !query.trim()) {
-      return NextResponse.json(
-        { error: "Search query 'q' is required" },
-        { status: 400 }
-      );
+      return respondError(ERROR_CODES.VALIDATION_ERROR, "Search query 'q' is required");
     }
 
     const user = await db.user.findUnique({
@@ -27,7 +24,7 @@ export async function GET(request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const searchKeyword = query.trim();
@@ -66,14 +63,11 @@ export async function GET(request) {
       },
     });
 
-    return NextResponse.json({
+    return Response.json({
       conversations: Array.isArray(conversations) ? conversations : [],
     });
   } catch (error) {
     console.error("Error searching conversations:", error);
-    return NextResponse.json(
-      { conversations: [], error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Internal Server Error");
   }
 }

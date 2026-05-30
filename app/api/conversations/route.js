@@ -1,15 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET() {
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -19,10 +17,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return Response.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const conversations = await db.conversation.findMany({
@@ -42,13 +37,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("GET conversations error:", error);
-
-    return Response.json(
-      {
-        error: "Failed to fetch conversations",
-      },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to fetch conversations");
   }
 }
 
@@ -57,10 +46,7 @@ export async function POST(request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -70,10 +56,7 @@ export async function POST(request) {
     });
 
     if (!user) {
-      return Response.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const body = await request.json();
@@ -103,13 +86,7 @@ export async function POST(request) {
     return Response.json(conversation);
   } catch (error) {
     console.error("POST conversation error:", error);
-
-    return Response.json(
-      {
-        error: "Failed to create conversation",
-      },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to create conversation");
   }
 }
 
@@ -118,10 +95,7 @@ export async function DELETE() {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -131,10 +105,7 @@ export async function DELETE() {
     });
 
     if (!user) {
-      return Response.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     await db.conversation.deleteMany({
@@ -148,12 +119,6 @@ export async function DELETE() {
     });
   } catch (error) {
     console.error("DELETE conversations error:", error);
-
-    return Response.json(
-      {
-        error: "Failed to clear conversations",
-      },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to clear conversations");
   }
 }

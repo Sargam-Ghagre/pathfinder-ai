@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateOutput } from "@/lib/validate";
 import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 
@@ -25,6 +26,7 @@ export async function generateCoverLetter(data) {
   }
 
   const prompt = buildSecurePrompt({
+    context: buildUserProfileContext(user),
     task: `Write a professional cover letter for the position described below.
 
 Use only the candidate facts provided in the input. Do not invent projects, achievements,
@@ -124,12 +126,12 @@ ${user.name || "Candidate"}
  */
 export async function getCoverLetters() {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return [];
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return [];
 
   return db.coverLetter.findMany({
     where: { userId: user.id },
@@ -142,12 +144,12 @@ export async function getCoverLetters() {
  */
 export async function getCoverLetter(id) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return null;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return null;
 
   return db.coverLetter.findFirst({
     where: {
@@ -162,17 +164,19 @@ export async function getCoverLetter(id) {
  */
 export async function deleteCoverLetter(id) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
- return db.coverLetter.deleteMany({
-  where: {
-    id,
-    userId: user.id,
-  },
-});
+  await db.coverLetter.deleteMany({
+    where: {
+      id,
+      userId: user.id,
+    },
+  });
+
+  return { success: true };
 }

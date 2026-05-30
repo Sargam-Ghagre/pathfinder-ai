@@ -54,10 +54,25 @@ export default function ATSForm({ savedResumeContent, onComplete }) {
     }
     startTransition(async () => {
       try {
-        const result = await analyzeATS({ resumeContent, jobDescription, jobTitle, companyName });
+        const result = await analyzeATS({
+          resumeContent,
+          jobDescription,
+          jobTitle,
+          companyName,
+        });
+
+        // Surface server-side validation errors or generic error
         if (!result?.success) {
-          const message = result?.errors?._form?.[0] || "Analysis failed. Please try again.";
-          throw new Error(message);
+          const errorMessage =
+            result?.errors?.resumeContent?.[0] ||
+            result?.errors?.jobDescription?.[0] ||
+            result?.errors?.jobTitle?.[0] ||
+            result?.errors?.companyName?.[0] ||
+            result?.errors?._form?.[0] ||
+            "Analysis failed. Please review your input and try again.";
+
+          toast.error(errorMessage);
+          return;
         }
         toast.success("ATS analysis complete!");
         onComplete(result.data);
@@ -221,7 +236,7 @@ export default function ATSForm({ savedResumeContent, onComplete }) {
 
             <Textarea
               id="resumeContent"
-              placeholder="…or paste your resume content here.&#10;&#10;Include: Work Experience, Skills, Education, Projects, Certifications."
+              placeholder="…or paste your resume content here.\n\nInclude: Work Experience, Skills, Education, Projects, Certifications."
               value={resumeContent}
               onChange={(e) => setResumeContent(e.target.value)}
               className={cn(
@@ -273,7 +288,7 @@ export default function ATSForm({ savedResumeContent, onComplete }) {
           <CardContent className="flex-1 flex flex-col gap-3">
             <Textarea
               id="jobDescription"
-              placeholder="Paste the job description here...&#10;&#10;Include: Responsibilities, Requirements, Nice-to-haves, Tech stack."
+              placeholder="Paste the job description here...\n\nInclude: Responsibilities, Requirements, Nice-to-haves, Tech stack."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               className={cn(

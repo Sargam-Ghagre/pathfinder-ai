@@ -13,24 +13,15 @@ import {
 } from "@clerk/nextjs";
 import {
   LayoutDashboard,
-  FileText,
-  Bot,
-  PenBox,
-  GraduationCap,
-  ChevronDown,
-  StarsIcon,
-  ScanText,
+  ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "./ui/Modetoggle";
 import { useTheme } from "next-themes";
 import { getUserOnboardingStatus } from "@/actions/user";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
   { id: "features", label: "Features" },
@@ -47,6 +38,7 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [clerkKeyless, setClerkKeyless] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isHomePage = pathname === "/";
 
@@ -54,7 +46,7 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 30);
+      setScrolled(window.scrollY > 20);
 
       const sections = NAV_LINKS.map((link) => ({
         id: link.id,
@@ -115,97 +107,173 @@ export default function Header() {
       const offsetPosition = elementPosition + window.scrollY - offset;
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
-          : "bg-transparent"
-      }`}
-    >
-      {clerkKeyless && (
-        <div className="w-full bg-yellow-400/90 text-yellow-900 text-sm py-1 text-center">
-          Clerk running in keyless dev mode — auth is disabled locally.
-        </div>
-      )}
-
-      <nav className="container mx-auto flex h-16 items-center justify-between px-6">
-        {/* Logo + Brand */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <Image
-            src={logoSrc}
-            alt="Pathfinder AI Logo"
-            width={42}
-            height={42}
-            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
-            priority
-          />
-          <span className="hidden sm:block text-xl font-semibold tracking-tight text-foreground">
-            Pathfinder <span className="text-purple-600 dark:text-purple-400">AI</span>
-          </span>
-        </Link>
-
-        {/* Navigation Links - Only on homepage */}
-        {isHomePage && (
-          <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
-                className={`relative text-sm font-medium transition-all duration-300 pb-1 group ${
-                  activeSection === link.id
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {link.label}
-                <span
-                  className={`absolute bottom-0 left-0 h-0.5 bg-purple-500 transition-all duration-300 ${
-                    activeSection === link.id ? "w-full" : "w-0 group-hover:w-full"
-                  }`}
-                />
-              </button>
-            ))}
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "py-2 glass border-b border-white/10"
+            : "py-4 bg-transparent"
+        }`}
+      >
+        {clerkKeyless && (
+          <div className="absolute top-0 left-0 w-full bg-yellow-400/90 text-yellow-900 text-[10px] font-bold py-0.5 text-center uppercase tracking-widest z-[60]">
+            Keyless Mode Active
           </div>
         )}
+        <nav className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <Image
+                src={logoSrc}
+                alt="Pathfinder AI Logo"
+                width={32}
+                height={32}
+                className="h-7 w-7 object-contain transition-transform duration-500 group-hover:scale-110"
+                priority
+              />
+            </div>
+            <span className="text-lg font-bold tracking-tight text-foreground flex items-center">
+              Pathfinder <span className="text-primary ml-1">AI</span>
+            </span>
+          </Link>
 
-        {/* Right Side */}
-        <div className="flex items-center gap-3">
-          <ModeToggle />
+          {/* Navigation Links - Desktop */}
+          <div className="hidden md:flex items-center gap-1">
+            {isHomePage ? (
+              NAV_LINKS.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => scrollToSection(link.id)}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                    activeSection === link.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {link.label}
+                </button>
+              ))
+            ) : (
+              <Link
+                href="/"
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Home
+              </Link>
+            )}
+          </div>
 
-          <SignedIn>
+          <div className="flex items-center gap-3">
+            <ModeToggle />
+            
+            <div className="hidden sm:block">
+              <SignedIn>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-muted-foreground hover:text-primary transition-all rounded-full"
+                  onClick={() => go("/dashboard")}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              </SignedIn>
+
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button size="sm" className="rounded-full px-5 font-semibold group">
+                    Sign In
+                    <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </SignInButton>
+              </SignedOut>
+            </div>
+
+            <SignedIn>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8 ring-2 ring-primary/20 hover:ring-primary/50 transition-all",
+                  },
+                }}
+                afterSignOutUrl="/"
+              />
+            </SignedIn>
+
             <Button
-              variant="outline"
-              className="hidden md:flex items-center gap-2 hover:scale-105 transition-all duration-300"
-              onClick={() => go("/dashboard")}
+              variant="ghost"
+              size="icon"
+              className="md:hidden rounded-full"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <LayoutDashboard className="h-4 w-4" />
-              Industry Insights
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-          </SignedIn>
+          </div>
+        </nav>
+      </header>
 
-          <SignedOut>
-            <SignInButton>
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-300 hover:scale-105">
-                Sign In
-              </Button>
-            </SignInButton>
-          </SignedOut>
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-background md:hidden pt-24 px-6"
+          >
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-4">Navigation</span>
+                {isHomePage ? (
+                  NAV_LINKS.map((link) => (
+                    <button
+                      key={link.id}
+                      onClick={() => scrollToSection(link.id)}
+                      className="text-left px-4 py-3 text-xl font-semibold hover:text-primary transition-colors border-b border-border/50"
+                    >
+                      {link.label}
+                    </button>
+                  ))
+                ) : (
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-4 py-3 text-xl font-semibold hover:text-primary transition-colors border-b border-border/50"
+                  >
+                    Home
+                  </Link>
+                )}
+              </div>
 
-          <SignedIn>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9 ring-2 ring-offset-2 ring-offset-background transition-all",
-                },
-              }}
-              afterSignOutUrl="/"
-            />
-          </SignedIn>
-        </div>
-      </nav>
-    </header>
+              <div className="flex flex-col gap-4 mt-4">
+                <SignedIn>
+                  <Button
+                    className="w-full h-12 text-lg font-semibold rounded-2xl"
+                    onClick={() => {
+                      go("/dashboard");
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Go to Dashboard
+                  </Button>
+                </SignedIn>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button className="w-full h-12 text-lg font-semibold rounded-2xl">
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

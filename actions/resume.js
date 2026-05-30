@@ -3,8 +3,10 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { cachedGenerateGeminiContent, RESUME_IMPROVEMENT_CACHE_TTL_MS, generateCacheKey } from "@/lib/cache";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput, validateOutput } from "@/lib/validate";
 import { resumeSaveSchema, resumeImprovementSchema } from "@/lib/schemas/forms";
 import { resumeImprovementOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
@@ -43,12 +45,12 @@ export async function saveResume(rawContent) {
 
 export async function getResume() {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return null;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return null;
 
   return await db.resume.findUnique({
     where: {
@@ -75,6 +77,7 @@ export async function improveWithAI(rawParams) {
   if (!user) return { success: false, errors: { _form: ["User account match could not be checked."] } };
 
   const prompt = buildSecurePrompt({
+    context: buildUserProfileContext(user),
     task: `As an expert resume writer, improve the following description to make it more impactful, quantifiable, and aligned with industry standards.
 
 Requirements:
@@ -106,7 +109,12 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       schemaDescription,
       schema: resumeImprovementOutputSchema,
       generateFn: async (p) => {
-        const raw = await generateGeminiContent(p);
+        const raw = p === prompt
+          ? await cachedGenerateGeminiContent(p, {}, {
+              key: generateCacheKey("improve", current, type, user.industry),
+              ttl: RESUME_IMPROVEMENT_CACHE_TTL_MS,
+            })
+          : await generateGeminiContent(p);
         return raw.response.text().trim();
       },
       validateFn: validateOutput,

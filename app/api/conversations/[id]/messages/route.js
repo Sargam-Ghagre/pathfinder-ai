@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function POST(request, context) {
   const params = await context.params;
@@ -7,7 +8,7 @@ export async function POST(request, context) {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -17,7 +18,7 @@ export async function POST(request, context) {
     });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const conversation = await db.conversation.findFirst({
@@ -28,20 +29,14 @@ export async function POST(request, context) {
     });
 
     if (!conversation) {
-      return Response.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.RESOURCE_NOT_FOUND, "Conversation not found");
     }
 
     const body = await request.json();
     const { role, content } = body;
 
     if (!role || !content) {
-      return Response.json(
-        { error: "Role and content are required" },
-        { status: 400 }
-      );
+      return respondError(ERROR_CODES.VALIDATION_ERROR, "Role and content are required");
     }
 
     const message = await db.message.create({
@@ -65,9 +60,6 @@ export async function POST(request, context) {
     return Response.json(message);
   } catch (error) {
     console.error("POST message error:", error);
-    return Response.json(
-      { error: "Failed to save message" },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to save message");
   }
 }

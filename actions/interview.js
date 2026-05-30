@@ -3,7 +3,10 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContent } from "@/lib/gemini";
+import { cachedGenerateGeminiContent, QUIZ_CACHE_TTL_MS, generateCacheKey } from "@/lib/cache";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai-context";
+import { parseAIJson } from "@/lib/validate";
 
 // Fallback MCQ questions in case Gemini generation fails
 const FALLBACK_QUESTIONS = [
@@ -128,12 +131,23 @@ export async function generateQuiz(category = "Technical") {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    select: { industry: true, skills: true },
+    select: {
+      name: true,
+      industry: true,
+      currentRole: true,
+      targetRole: true,
+      careerGoals: true,
+      experience: true,
+      bio: true,
+      skills: true,
+    },
   });
   if (!user) throw new Error("User not found");
 
+  const profileContext = buildUserProfileContext(user);
+
   const normalizedSkills = user.skills
-    ? Array.from(new Set(user.skills.map((s) => String(s).trim()).filter(Boolean)))
+    ? Array.from(new Set(user.skills.map((s) => String(s).trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b))
     : [];
 
   const categoryPrompts = {
@@ -145,6 +159,7 @@ export async function generateQuiz(category = "Technical") {
   const categoryIntro = categoryPrompts[category] || categoryPrompts.Technical;
 
   const prompt = buildSecurePrompt({
+    context: profileContext,
     task: `You are a highly experienced hiring manager and strict quiz generator.
 
 ${categoryIntro}
@@ -185,9 +200,7 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
 
   try {
     const result = await generateGeminiContent(prompt);
-    const text = result.response.text();
-    const cleaned = text.replace(/```(?:json)?[\r\n]?/g, "").trim();
-    const quiz = JSON.parse(cleaned);
+    const quiz = parseAIJson(result.response.text());
 
     if (!quiz || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
       throw new Error("Invalid questions structure received from AI.");
@@ -255,6 +268,7 @@ export async function saveQuizResult(questions, answers, score, category = "Tech
       .join("\n\n");
 
     const tipPrompt = buildSecurePrompt({
+      context: profileContext,
       task: "You are a supportive career mentor. The candidate completed a quiz. Provide an encouraging, actionable improvement tip (strictly max 2 sentences) recommending key learning areas. Be positive, warm, and professional. Do not refer to question indexes or speak critically.",
       untrustedData: [
         { label: "industry", value: user.industry || "software", maxLength: 200 },
@@ -296,12 +310,12 @@ export async function saveQuizResult(questions, answers, score, category = "Tech
  */
 export async function getAssessments() {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return [];
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return [];
 
   return db.assessment.findMany({
     where: { userId: user.id },
@@ -314,12 +328,12 @@ export async function getAssessments() {
  */
 export async function getAssessment(id) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return null;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return null;
 
   const assessment = await db.assessment.findUnique({
     where: {
@@ -328,6 +342,5 @@ export async function getAssessment(id) {
     },
   });
 
-  if (!assessment) throw new Error("Assessment not found or access denied.");
   return assessment;
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET() {
   try {
@@ -9,12 +9,9 @@ export async function GET() {
       avgRating: "4.8",
     };
 
-    return NextResponse.json(stats);
+    return Response.json(stats);
   } catch (err) {
     console.error("[api/stats]", err);
-    return NextResponse.json(
-      { error: "Failed to load stats" },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to load stats");
   }
 }

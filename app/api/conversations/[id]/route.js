@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET(request, context) {
   const params = await context.params;
@@ -8,7 +9,7 @@ export async function GET(request, context) {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -18,7 +19,7 @@ export async function GET(request, context) {
     });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const conversation = await db.conversation.findFirst({
@@ -36,19 +37,13 @@ export async function GET(request, context) {
     });
 
     if (!conversation) {
-      return Response.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.RESOURCE_NOT_FOUND, "Conversation not found");
     }
 
     return Response.json(conversation);
   } catch (error) {
     console.error("GET single conversation error:", error);
-    return Response.json(
-      { error: "Failed to fetch conversation" },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to fetch conversation");
   }
 }
 
@@ -59,7 +54,7 @@ export async function DELETE(request, context) {
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return respondError(ERROR_CODES.UNAUTHORIZED);
     }
 
     const user = await db.user.findUnique({
@@ -69,7 +64,7 @@ export async function DELETE(request, context) {
     });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+      return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
     const conversation = await db.conversation.findFirst({
@@ -80,10 +75,7 @@ export async function DELETE(request, context) {
     });
 
     if (!conversation) {
-      return Response.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      );
+      return respondError(ERROR_CODES.RESOURCE_NOT_FOUND, "Conversation not found");
     }
 
     await db.conversation.delete({
@@ -95,9 +87,6 @@ export async function DELETE(request, context) {
     return Response.json({ success: true });
   } catch (error) {
     console.error("DELETE conversation error:", error);
-    return Response.json(
-      { error: "Failed to delete conversation" },
-      { status: 500 }
-    );
+    return respondError(ERROR_CODES.INTERNAL_SERVER_ERROR, "Failed to delete conversation");
   }
 }

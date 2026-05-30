@@ -135,21 +135,13 @@ async function downloadReport(result) {
     createdAt,
   } = result || {};
 
-  const normalizedSuggestions =
-    normalizeAtsSuggestions(suggestions);
+  const normalizedSuggestions = normalizeAtsSuggestions(suggestions);
 
-  const safeScore = Number.isFinite(Number(atsScore))
-    ? Math.min(100, Math.max(0, Number(atsScore)))
-    : 0;
+  const safeScore = Number.isFinite(Number(atsScore)) ? Math.min(100, Math.max(0, Number(atsScore))) : 0;
 
-  const safeMatchedKeywords = Array.isArray(matchedKeywords)
-    ? matchedKeywords
-    : [];
+  const safeMatchedKeywords = Array.isArray(matchedKeywords) ? matchedKeywords : [];
 
-  const safeMissingKeywords = Array.isArray(missingKeywords)
-    ? missingKeywords
-    : [];
-
+  const safeMissingKeywords = Array.isArray(missingKeywords) ? missingKeywords : [];
   const { label } = getScoreColor(safeScore);
 
   const html = `
@@ -226,9 +218,7 @@ async function downloadReport(result) {
         Improvement Suggestions
       </h2>
 
-      ${normalizedSuggestions
-        .map(
-          (s) => `
+      ${normalizedSuggestions.map((s) => `
         <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; margin-bottom:10px;">
           <strong style="color:#6d28d9;">
             ${s.category}
@@ -281,36 +271,22 @@ async function downloadReport(result) {
   document.body.removeChild(el);
 }
 
-/* ───────────────── component ───────────────── */
-
-export default function ATSResult({
-  result,
-  onAnalyzeAgain,
-}) {
+/* ── main component ───────────────────────────────────── */
+export default function ATSResult({ result, onAnalyzeAgain }) {
   const {
     atsScore,
+    jobTitle,
+    companyName,
     matchedKeywords,
     missingKeywords,
     suggestions,
     overallFeedback,
-    jobTitle,
-    companyName,
   } = result || {};
 
-  const normalizedSuggestions =
-    normalizeAtsSuggestions(suggestions);
-
-  const safeScore = Number.isFinite(Number(atsScore))
-    ? Math.min(100, Math.max(0, Number(atsScore)))
-    : 0;
-
-  const safeMatchedKeywords = Array.isArray(matchedKeywords)
-    ? matchedKeywords
-    : [];
-
-  const safeMissingKeywords = Array.isArray(missingKeywords)
-    ? missingKeywords
-    : [];
+  const safeScore = Number.isFinite(Number(atsScore)) ? Math.min(100, Math.max(0, Number(atsScore))) : 0;
+  const safeMatchedKeywords = Array.isArray(matchedKeywords) ? matchedKeywords : [];
+  const safeMissingKeywords = Array.isArray(missingKeywords) ? missingKeywords : [];
+  const normalizedSuggestions = normalizeAtsSuggestions(suggestions);
 
   return (
     <div className="space-y-6">
