@@ -1,0 +1,73 @@
+import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
+import { generateJsonExport } from "@/lib/export/json-export";
+import { generateMarkdownExport } from "@/lib/export/markdown-export";
+import { getOwnedConversation } from "@/lib/conversation/getConversation";
+
+
+export async function GET(request, context) {
+  const params = await context.params;
+  const format =
+    new URL(request.url).searchParams.get("format") || "json";
+    if (!["json", "md"].includes(format)) {
+        return respondError(
+            ERROR_CODES.VALIDATION_ERROR,
+            "Supported formats are json and md"
+        );
+    }
+
+  try {
+    const result = await getOwnedConversation(params.conversationId);
+
+    if (!result) {
+      return respondError(ERROR_CODES.UNAUTHORIZED);
+    }
+
+    const { user, conversation } = result;
+
+    if (!conversation) {
+      return respondError(
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        "Conversation not found"
+      );
+    }
+
+    let exportData;
+    let contentType;
+    let fileExtension;
+
+    if (format === "md") {
+        exportData = generateMarkdownExport(conversation);
+        contentType = "text/markdown";
+        fileExtension = "md";
+    } else {
+        exportData = generateJsonExport(conversation);
+        contentType = "application/json";
+        fileExtension = "json";
+    }
+
+    // TODO: Create ExportRecord and AuditLog entries
+    // after migrations are applied.
+
+    console.log("Conversation exported", {
+    userId: user.id,
+    conversationId: conversation.id,
+    format,
+    });
+
+    return new Response(exportData, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition":
+            `attachment; filename="${conversation.title}.${fileExtension}"`,
+        },
+    });
+  } catch (error) {
+    console.error("Export conversation error:", error);
+
+    return respondError(
+      ERROR_CODES.INTERNAL_SERVER_ERROR,
+      "Failed to export conversation"
+    );
+  }
+}
