@@ -50,6 +50,10 @@ describe("chatWithGemini", () => {
     );
   });
 
+  it("rejects whitespace-only prompts", async () => {
+    await expect(chatWithGemini("   ")).rejects.toThrow("Prompt is required");
+  });
+
   it("wraps the prompt before sending it to Gemini", async () => {
     mocks.buildSecurePrompt.mockReturnValue("secure prompt");
     mocks.generateGeminiContent.mockResolvedValue({

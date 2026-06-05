@@ -5,6 +5,15 @@ import { db } from "@/lib/prisma";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
+import { chatPromptSchema } from "@/lib/schemas/chat";
+
+export async function chatWithGemini(prompt) {
+  const validation = chatPromptSchema.safeParse(prompt);
+  if (!validation.success) {
+    throw new Error(validation.error.errors[0].message);
+  }
+  
+  const validatedPrompt = validation.data;
 import { validateInput } from "@/lib/validate";
 import { chatPromptSchema } from "@/lib/schemas/forms";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit";
@@ -35,6 +44,7 @@ export async function chatWithGemini(prompt) {
     context: buildUserProfileContext(user),
     task: "You are Pathfinder AI, a career-focused assistant. Only answer career-related questions. Politely refuse unrelated questions.",
     untrustedData: [
+      { label: "userQuery", value: validatedPrompt, maxLength: 4000 },
       { label: "userQuery", value: validation.data.prompt, maxLength: 4000 },
     ],
   });

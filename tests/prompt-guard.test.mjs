@@ -20,3 +20,13 @@ it("refuses prompts without career context", () => {
   expect(result.status).toBe(400);
   expect(result.message).toBe("Prompt must be career-related");
 });
+
+it("refuses empty or whitespace-only prompts", () => {
+  const empty = preparePromptForGeneration("");
+  expect(empty.allowed).toBe(false);
+  expect(empty.message).toBe("Prompt is required");
+
+  const whitespace = preparePromptForGeneration("   ");
+  expect(whitespace.allowed).toBe(false);
+  expect(whitespace.message).toBe("Prompt is required");
+});
