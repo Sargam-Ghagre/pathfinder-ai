@@ -144,6 +144,39 @@
     @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+  /* Interactive elements should signal interactivity with the pointer cursor.
+     Non-interactive elements retain the default cursor. */
+  button:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  label[for],
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"],
+  [role="checkbox"]:not([aria-disabled="true"]),
+  [role="radio"]:not([aria-disabled="true"]),
+  [role="switch"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([aria-disabled="true"]),
+  [data-cursor="pointer"] {
+    cursor: pointer;
+  }
+  /* Disabled controls should show the not-allowed cursor */
+  button:disabled,
+  select:disabled,
+  [aria-disabled="true"][role] {
+    cursor: not-allowed;
+  }
+  /* Text inputs default to text cursor */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    cursor: text;
+  }
 }
 
 @layer utilities {
