@@ -327,10 +327,6 @@ export async function POST(request) {
     generationCompletionReject = reject;
   });
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      let fullResponse = "";
-      let streamClosed = false;
   const aiContext = buildUserAiContext(user, recentMessages.reverse());
   const clientIp = request.headers.get("x-real-ip") || "anonymous";
   const cacheUser = userId || clientIp;

@@ -11,120 +11,6 @@ import { quizCategorySchema, quizResultSaveSchema } from "@/lib/schemas/forms";
 import { interviewQuestionsOutputSchema } from "@/lib/schemas/outputs";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
-// Fallback MCQ questions in case Gemini generation fails
-const FALLBACK_QUESTIONS = [
-  {
-    question: "What does HTML stand for?",
-    options: [
-      "Hyper Text Markup Language",
-      "High Transfer Machine Language",
-      "Hyperlink Text Management Language",
-      "Home Tool Markup Language",
-    ],
-    correctAnswer: "Hyper Text Markup Language",
-    explanation: "HTML (Hyper Text Markup Language) is the standard markup language used to structure and display web pages.",
-  },
-  {
-    question: "Which programming language runs natively inside web browsers?",
-    options: [
-      "Java",
-      "Python",
-      "C++",
-      "JavaScript",
-    ],
-    correctAnswer: "JavaScript",
-    explanation: "JavaScript is a high-level, interpreted scripting language that conforms to the ECMAScript specification and runs natively inside all modern browsers.",
-  },
-  {
-    question: "What is React mainly used for in web development?",
-    options: [
-      "Database management",
-      "Frontend user interface development",
-      "Operating systems",
-      "Network routing and security",
-    ],
-    correctAnswer: "Frontend user interface development",
-    explanation: "React is a popular open-source JavaScript library developed by Meta specifically for building component-based frontend user interfaces.",
-  },
-  {
-    question: "Which of the following database models is NoSQL?",
-    options: [
-      "PostgreSQL",
-      "MongoDB",
-      "MySQL",
-      "Oracle DB",
-    ],
-    correctAnswer: "MongoDB",
-    explanation: "MongoDB is a leading document-oriented NoSQL database that stores data in JSON-like flexible documents.",
-  },
-  {
-    question: "What does CSS handle in modern web development?",
-    options: [
-      "Server-side business logic",
-      "Database storage and caching",
-      "Styling, layout, and visual presentation",
-      "User authentication and sessions",
-    ],
-    correctAnswer: "Styling, layout, and visual presentation",
-    explanation: "CSS (Cascading Style Sheets) is a stylesheet language used to specify the layout, colors, fonts, and overall visual appearance of HTML documents.",
-  },
-  {
-    question: "Which hook is commonly used to manage state inside a React function component?",
-    options: [
-      "useEffect",
-      "useFetch",
-      "useState",
-      "useRouter",
-    ],
-    correctAnswer: "useState",
-    explanation: "The useState hook is a built-in React hook that allows functional components to have local state variables that persist across renders.",
-  },
-  {
-    question: "What is Node.js?",
-    options: [
-      "A frontend CSS styling framework",
-      "An open-source server runtime environment for JavaScript",
-      "A relational database system",
-      "A code compilation package manager",
-    ],
-    correctAnswer: "An open-source server runtime environment for JavaScript",
-    explanation: "Node.js is a cross-platform, open-source JavaScript runtime environment built on Chrome's V8 engine that allows developers to run JS code server-side.",
-  },
-  {
-    question: "Which technology company originally created and released Java?",
-    options: [
-      "Google",
-      "Sun Microsystems",
-      "Microsoft",
-      "Apple",
-    ],
-    correctAnswer: "Sun Microsystems",
-    explanation: "Java was originally developed and released by James Gosling and his team at Sun Microsystems in 1995 (later acquired by Oracle).",
-  },
-  {
-    question: "What does API stand for in software integration?",
-    options: [
-      "Application Programming Interface",
-      "Advanced Program Interaction",
-      "Applied Programming Internet",
-      "Application Process Integration",
-    ],
-    correctAnswer: "Application Programming Interface",
-    explanation: "An API (Application Programming Interface) is a set of defined rules and protocols that enables different software applications to communicate and exchange data.",
-  },
-  {
-    question: "Which keyword is used to declare a variable in older JavaScript scopes that is function-scoped?",
-    options: [
-      "define",
-      "string",
-      "var",
-      "integer",
-    ],
-    correctAnswer: "var",
-    explanation: "In JavaScript, 'var' is the original keyword used to declare variables. It is function-scoped rather than block-scoped like 'let' and 'const'.",
-  },
-];
-
 /**
  * Generates 10 unique MCQ questions based on user's industry, skills, and quiz category.
  */
@@ -219,8 +105,8 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
 
     return quizValidation.data.questions.slice(0, 10);
   } catch (error) {
-    console.error("AI Quiz generation failed, using default questions:", error);
-    return FALLBACK_QUESTIONS;
+    console.error("AI Quiz generation failed:", error);
+    throw new Error(error?.message || "Failed to generate interview questions. Please check your AI configuration.");
   }
 }
 

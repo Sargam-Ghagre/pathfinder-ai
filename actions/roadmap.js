@@ -94,49 +94,8 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
 
     return roadmap;
   } catch (error) {
-    console.error("Error generating career roadmap, using fallback:", error);
-    const errorCode = error?.code || "UNKNOWN";
-
-    const fallbackContent = {
-      milestones: [
-        {
-          title: "Skill Assessment & Gap Analysis",
-          description: "Evaluate your current skills against your target role to identify key areas for development.",
-          skillsToLearn: ["Self-assessment", "Industry research"],
-          estimatedDuration: "1-2 months",
-          priority: "high",
-        },
-        {
-          title: "Core Skill Development",
-          description: "Build foundational skills required for your target role through structured learning.",
-          skillsToLearn: ["Technical fundamentals", "Best practices"],
-          estimatedDuration: "3-6 months",
-          priority: "high",
-        },
-        {
-          title: "Practical Application",
-          description: "Apply your new skills through projects, internships, or contributions to real-world work.",
-          skillsToLearn: ["Project management", "Hands-on practice"],
-          estimatedDuration: "6-12 months",
-          priority: "high",
-        },
-      ],
-      totalEstimatedTime: "12-18 months",
-      summary: "A personalized roadmap tailored to your career goals. Update your profile with more details for a more targeted plan.",
-    };
-
-    const roadmap = await db.roadmap.upsert({
-      where: { userId: user.id },
-      create: {
-        content: fallbackContent,
-        userId: user.id,
-      },
-      update: {
-        content: fallbackContent,
-      },
-    });
-
-    return { ...roadmap, _errorCode: errorCode };
+    console.error("Error generating career roadmap:", error);
+    throw new Error(error?.message || "Failed to generate your career roadmap. Please check your AI configuration.");
   }
 }
 

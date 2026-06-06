@@ -98,36 +98,8 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
 
     return coverLetter;
   } catch (error) {
-    console.error("Error generating cover letter, using fallback:", error);
-    const errorCode = error?.code || "UNKNOWN";
-
-    const fallbackContent = `
-# Cover Letter
-
-Dear Hiring Manager,
-
-I am writing to express my interest in the ${data.jobTitle} position at ${data.companyName}. 
-
-Based on my background in the ${user.industry || "relevant"} industry and my experience, I believe I can bring valuable skills to your team. I would love the opportunity to discuss how my qualifications align with your needs.
-
-Thank you for your time and consideration.
-
-Sincerely,
-${user.name || "Candidate"}
-`;
-
-    const coverLetter = await db.coverLetter.create({
-      data: {
-        content: fallbackContent.trim(),
-        companyName,
-        jobTitle,
-        jobDescription,
-        status: "fallback",
-        userId: user.id,
-      },
-    });
-
-    return { ...coverLetter, _errorCode: errorCode };
+    console.error("Error generating cover letter:", error);
+    throw new Error(error?.message || "Failed to generate your cover letter. Please check your AI configuration.");
   }
 }
 
