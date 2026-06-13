@@ -7,7 +7,7 @@ import {
   Flame, Linkedin, Star, Video, LayoutList, Lightbulb, 
   DollarSign, Calculator, Send, ArrowRightLeft, CalendarClock,
   Coffee, ShieldAlert, Code2, HeartPulse, Rocket,
-  Home, Workflow, CalendarHeart, Globe, MapPin, Users, Flag, HandCoins, Target
+  Home, Workflow, CalendarHeart, Globe, MapPin, Users, Flag, HandCoins, Target, LineChart, Brain, BookOpen
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -67,6 +67,9 @@ const TOOL_CATEGORIES = [
       { name: "Toxic Workplace", desc: "Discreet escape plans", icon: Flag, color: "bg-red-500/10 text-red-500 border-red-500/20", href: "/toxic-workplace" },
       { name: "Freelance Rate", desc: "Calculate your worth", icon: HandCoins, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/freelance-rate" },
       { name: "Ikigai Builder", desc: "Find your life purpose", icon: Target, color: "bg-violet-500/10 text-violet-500 border-violet-500/20", href: "/ikigai" },
+      { name: "Performance Review", desc: "Ace your assessment", icon: LineChart, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/performance-review" },
+      { name: "Imposter Coach", desc: "Rewrite the narrative", icon: Brain, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/imposter-syndrome" },
+      { name: "Manager README", desc: "Lead with clarity", icon: BookOpen, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/manager-readme" },
       { name: "Explore Careers", desc: "Discover & Compare", icon: Compass, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/explore" },
     ]
   }
