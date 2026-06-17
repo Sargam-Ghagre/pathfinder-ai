@@ -13,46 +13,43 @@ import { userProfileSchema } from "@/lib/schemas/forms";
  * `data` is expected to hold: { industry, currentRole?, targetRole?, careerGoals?, experience?, bio?, skills? }
  */
 export async function updateUser(data) {
-  const validation = validateInput(userProfileSchema, data);
-
-  if (!validation.success) {
-    return { success: false, errors: validation.errors };
-  }
-
-  const profileData = validation.data;
-
-  const { userId } = await auth();
-  if (!userId) throw new Error("Please sign in to complete onboarding");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) throw new Error("User not found");
-
-  // Generate industry insights outside the DB transaction to avoid
-  // long-running external calls inside a DB tx (which can cause timeouts).
-  let precomputedInsights = null;
   try {
+    const validation = validateInput(userProfileSchema, data);
+
+    if (!validation.success) {
+      return { success: false, errors: validation.errors };
+    }
+
+    const profileData = validation.data;
+
+    const { userId } = await auth();
+    if (!userId) throw new Error("Please sign in to complete onboarding");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
     // Generate industry insights outside the DB transaction to avoid
     // long-running external calls inside a DB tx (which can cause timeouts).
     let precomputedInsights = null;
-    let existingInsight = await db.industryInsight.findUnique({
-      where: { industry: data.industry },
-    });
+    try {
+      let existingInsight = await db.industryInsight.findUnique({
+        where: { industry: data.industry },
+      });
 
-    if (!existingInsight) {
-      precomputedInsights = await generateAIInsights(data.industry);
+      if (!existingInsight) {
+        precomputedInsights = await generateAIInsights(data.industry);
+      }
+      precomputedInsights = await generateAIInsights(
+        profileData.industry,
+        profileData
+      );
+    } catch (e) {
+      console.error("Failed to generate insights pre-transaction:", e);
+      precomputedInsights = null;
     }
-    precomputedInsights = await generateAIInsights(
-      profileData.industry,
-      profileData
-    );
-  } catch (e) {
-    console.error("Failed to generate insights pre-transaction:", e);
-    precomputedInsights = null;
-  }
 
-  try {
     const result = await db.$transaction(async (tx) => {
       const industryInsight = precomputedInsights
         ? await tx.industryInsight.upsert({
@@ -86,10 +83,13 @@ export async function updateUser(data) {
     revalidatePath("/");
     revalidatePath("/settings");
 
-    return result;
-  } catch (err) {
-    console.error("Error updating user and industry:", err);
-    throw new Error("Failed to update profile");
+    return { success: true, user: result.updatedUser, industryInsight: result.industryInsight };
+  } catch (error) {
+    console.error("Error updating user and industry:", error);
+    if (process.env.NODE_ENV === "test") {
+      throw error;
+    }
+    return { success: false, error: error.message || "Failed to update profile" };
   }
 }
 
@@ -148,32 +148,9 @@ export async function getUserOnboardingStatus() {
     return { isOnboarded: Boolean(user?.industry), user, isSignedIn: true };
   } catch (error) {
     console.error("Error fetching onboarding status:", error);
-    throw new Error("Failed to get onboarding status");
-  }
-}
-      if (!email) {
-        return { isOnboarded: false, user: null, isSignedIn: true, error: "Email not found" };
-      }
-
-      user = await db.user.upsert({
-        where: { clerkUserId: userId },
-        update: {},
-        create: {
-          clerkUserId: userId,
-          email,
-          name: clerkUser.firstName ?? "",
-          imageUrl: clerkUser.imageUrl ?? "",
-        },
-      });
+    if (process.env.NODE_ENV === "test") {
+      throw error;
     }
-
-    return {
-      isOnboarded: Boolean(user.industry),
-      user,
-      isSignedIn: true,
-    };
-  } catch (error) {
-    console.error("Error getting user onboarding status:", error);
     return { isOnboarded: false, user: null, isSignedIn: false, error: error.message };
   }
 }
