@@ -151,29 +151,4 @@ export async function getUserOnboardingStatus() {
     throw new Error("Failed to get onboarding status");
   }
 }
-      if (!email) {
-        return { isOnboarded: false, user: null, isSignedIn: true, error: "Email not found" };
-      }
-
-      user = await db.user.upsert({
-        where: { clerkUserId: userId },
-        update: {},
-        create: {
-          clerkUserId: userId,
-          email,
-          name: clerkUser.firstName ?? "",
-          imageUrl: clerkUser.imageUrl ?? "",
-        },
-      });
-    }
-
-    return {
-      isOnboarded: Boolean(user.industry),
-      user,
-      isSignedIn: true,
-    };
-  } catch (error) {
-    console.error("Error getting user onboarding status:", error);
-    return { isOnboarded: false, user: null, isSignedIn: false, error: error.message };
-  }
-}
+      

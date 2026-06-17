@@ -8,9 +8,14 @@ import { generateGeminiContent } from "@/lib/gemini";
 
 export async function startCoffeeChat(industry, targetRole) {
   const { userId } = await auth();
+  console.log("Clerk User ID:", userId);
+
+  console.log("=== Coffee Chat Debug ===");
+  console.log("Clerk User ID:", userId);
   if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  console.log("Database User:", user);
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
   if (!industry || !targetRole) {
