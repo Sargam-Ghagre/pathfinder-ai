@@ -36,7 +36,9 @@ import {
   RocketIcon,
   Crown,
   Home,
-  Rocket
+  Rocket,
+  ShieldAlert,
+  BookOpenText
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -93,6 +95,8 @@ const TOOL_CATEGORIES = [
       { name: "Executive Presence", desc: "Command the room", icon: Crown, color: "bg-purple-500/10 text-purple-500 border-purple-500/20", href: "/executive-presence" },
       { name: "Side Hustle Ideas", desc: "Micro-SaaS & Solopreneur", icon: Rocket, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/side-hustle" },
       { name: "Remote Work Negotiator", desc: "Pitch remote transition", icon: Home, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/remote-work" },
+      { name: "Manager README", desc: "User manual for you", icon: BookOpenText, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/manager-readme" },
+      { name: "Imposter Syndrome", desc: "Reframing exercises", icon: ShieldAlert, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/imposter-syndrome" },
     ]
   }
 ];
