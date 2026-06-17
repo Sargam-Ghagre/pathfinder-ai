@@ -81,10 +81,10 @@ export async function PATCH(request) {
         return respondError(ERROR_CODES.USER_NOT_FOUND);
       }
 
-      return Response.json({
-        saveChatHistory: validation.data.saveChatHistory,
-        warning: "Field not persisted in database (column missing)"
-      });
+      return respondError(
+        ERROR_CODES.INTERNAL_SERVER_ERROR,
+        "Failed to save preferences"
+      );
     }
   } catch (error) {
     console.error("Critical error updating user preferences:", error);

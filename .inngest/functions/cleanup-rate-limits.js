@@ -1,7 +1,7 @@
-import { inngest } from "@/lib/inngest/client";
+import { getInngest } from "@/lib/inngest/client";
 import { deleteExpiredRateLimits } from "@/lib/rate-limit-actions";
 
-export const cleanupRateLimits = inngest.createFunction(
+export const cleanupRateLimits = async (await getInngest()).createFunction(
   {
     id: "cleanup-rate-limits",
     name: "Cleanup Expired Rate Limit Rows",

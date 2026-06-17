@@ -355,6 +355,7 @@ describe("getRoadmap", () => {
       where: { userId: "db-user-1" },
     });
     expect(result.roadmap?.id).toBe("roadmap-1");
+    expect(result.error).toBeNull();
   });
 
   it("returns null when user is not authenticated", async () => {

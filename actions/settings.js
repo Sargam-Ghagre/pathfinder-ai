@@ -48,8 +48,13 @@ export async function getUserSettings() {
   try {
     const user = await getUserByClerkId(userId);
 
-    const existingSettings = await db.userSettings.findUnique({
+    const settings = await db.userSettings.upsert({
       where: { userId: user.id },
+      update: {},
+      create: { userId: user.id },
+    });
+
+    return normalizeSettings(settings);
     });
 
     return normalizeSettings(existingSettings);
@@ -69,6 +74,13 @@ export async function updateUserSettings(data) {
   try {
     const validation = validateInput(userSettingsSchema, data);
 
+    const settings = await db.userSettings.upsert({
+      where: { userId: user.id },
+      update: settingsData,
+      create: { 
+        userId: user.id,
+        ...settingsData
+      },
     if (!validation.success) {
       return { success: false, errors: validation.errors };
     }

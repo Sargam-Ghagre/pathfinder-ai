@@ -3,8 +3,14 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
+
+const ClerkUserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  { ssr: false }
+);
 import {
   LayoutDashboard,
   Bot,
@@ -57,7 +63,9 @@ import {
   Brain,
   BookOpen,
   Activity,
-  PenLine
+  PenLine,
+  RocketIcon,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,6 +142,8 @@ const MENU_GROUPS = [
       { href: "/performance-review", label: "Performance Review Writer", icon: <LineChart className="h-4 w-4 text-blue-500" /> },
       { href: "/imposter-syndrome", label: "Imposter Syndrome Coach", icon: <Brain className="h-4 w-4 text-rose-500" /> },
       { href: "/manager-readme", label: "Manager README Builder", icon: <BookOpen className="h-4 w-4 text-cyan-500" /> },
+      { href: "/founder-readiness", label: "Startup Founder Readiness", icon: <RocketIcon className="h-4 w-4 text-orange-500" /> },
+      { href: "/executive-presence", label: "Executive Presence Coach", icon: <Crown className="h-4 w-4 text-purple-500" /> },
     ]
   },
   {
@@ -265,14 +275,14 @@ export default function AppSidebar() {
         ))}
       </div>
 
-      {/* User Section */}
+      {/* User Section - FIXED for issue #455 */}
       <div className="p-4 border-t border-sidebar-border bg-sidebar/50 backdrop-blur-md">
         <div className={cn(
           "flex items-center rounded-2xl transition-all duration-300 border border-transparent hover:border-sidebar-border hover:bg-muted/50 cursor-pointer overflow-hidden",
           isOpen || isMobile ? "gap-3 p-3" : "justify-center p-2"
         )}>
           <div className="relative shrink-0">
-            <UserButton 
+            <ClerkUserButton 
               appearance={{ 
                 elements: { 
                   avatarBox: "w-9 h-9 rounded-xl ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all shadow-lg" 
@@ -287,8 +297,13 @@ export default function AppSidebar() {
               animate={{ opacity: 1, x: 0 }}
               className="flex flex-col flex-1 min-w-0"
             >
-              <span className="text-xs font-black text-foreground truncate leading-tight">{user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress || 'User Account'}</span>
-              <span className="text-[10px] font-bold text-muted-foreground truncate uppercase tracking-widest mt-0.5">{user?.publicMetadata?.plan ? `${user.publicMetadata.plan} Member` : 'Free Member'}</span>
+              <span className="text-xs font-black text-foreground truncate leading-tight">
+                {user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress || 'User Account'}
+              </span>
+              {/* FIXED: Shows "Pro Member" only for pro users, "Free Member" for everyone else */}
+              <span className="text-[10px] font-bold text-muted-foreground truncate uppercase tracking-widest mt-0.5">
+                {user?.publicMetadata?.plan === "pro" ? "Pro Member" : "Free Member"}
+              </span>
             </motion.div>
           )}
         </div>

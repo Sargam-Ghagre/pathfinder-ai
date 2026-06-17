@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from "framer-motion";
@@ -339,7 +339,7 @@ function ResumeStage() {
                     <motion.div
                       className="h-full bg-primary"
                       initial={{ width: "0%" }}
-                      style={{ width: useTransform(scrollYProgress, [0, 1], ["0%", `${85 + Math.random() * 15}%`]) }}
+                      animate={{ width: `${85 + i * 5}%` }}
                     />
                   </motion.div>
                 </div>
@@ -564,3 +564,4 @@ export function ScrollStory() {
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-function isInngestConfigured() {
+﻿function isInngestConfigured() {
   return !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY);
 }
 
@@ -10,7 +10,7 @@ export async function GET(request) {
     const [{ getInngest }, { getGenerateIndustryInsights }, { cleanupRateLimits }, { serve }] = await Promise.all([
       import("@/lib/inngest/client"),
       import("@/lib/inngest/function"),
-      import("@/lib/inngest/function/cleanup-rate-limits"),
+      import("@/.inngest/functions/cleanup-rate-limits"),
       import("inngest/next"),
     ]);
     const client = await getInngest();
@@ -35,7 +35,7 @@ export async function POST(request) {
     const [{ getInngest }, { getGenerateIndustryInsights }, { cleanupRateLimits }, { serve }] = await Promise.all([
       import("@/lib/inngest/client"),
       import("@/lib/inngest/function"),
-      import("@/lib/inngest/function/cleanup-rate-limits"),
+      import("@/.inngest/functions/cleanup-rate-limits"),
       import("inngest/next"),
     ]);
     const client = await getInngest();
@@ -60,7 +60,7 @@ export async function PUT(request) {
     const [{ getInngest }, { getGenerateIndustryInsights }, { cleanupRateLimits }, { serve }] = await Promise.all([
       import("@/lib/inngest/client"),
       import("@/lib/inngest/function"),
-      import("@/lib/inngest/function/cleanup-rate-limits"),
+      import("@/.inngest/functions/cleanup-rate-limits"),
       import("inngest/next"),
     ]);
     const client = await getInngest();
@@ -76,3 +76,4 @@ export async function PUT(request) {
     return new Response(JSON.stringify({ error: "Inngest handler error" }), { status: 500 });
   }
 }
+

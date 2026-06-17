@@ -4,8 +4,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import PropTypes from "prop-types";
 import { Providers } from "@/components/providers";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
 import { BackgroundEngine } from "@/components/backgrounds";
 import { CursorGlow } from "@/components/ui/CursorGlow";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
@@ -30,27 +28,25 @@ export default function RootLayout(props) {
   const { children } = props;
 
   return (
-    <ClerkProvider
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      signInFallbackRedirectUrl="/dashboard"
-      signUpFallbackRedirectUrl="/onboarding"
-      afterSignOutUrl="/"
-    >
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/dashboard"
+          signUpFallbackRedirectUrl="/onboarding"
+          afterSignOutUrl="/"
+        >
           <Providers>
             <BackgroundEngine />
             <ScrollProgress />
             <CursorGlow />
-            <Header />
             <main className="min-h-screen">{children}</main>
             <Toaster richColors />
-            <Footer />
           </Providers>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
 
