@@ -93,7 +93,7 @@ describe("getIndustryInsights", () => {
 
       await expect(getIndustryInsights()).resolves.toEqual({ id: "insight-1" });
 
-      expect(mocks.generateIndustryInsightData).toHaveBeenCalledWith("technology");
+      expect(mocks.generateIndustryInsightData).toHaveBeenCalledWith("technology", expect.any(Object));
       expect(mocks.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { industry: "technology" },
