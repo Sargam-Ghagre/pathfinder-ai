@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
 
 export async function generateAssessmentStrategy(company, assessmentType) {
   const { userId } = await auth();
@@ -18,7 +19,7 @@ export async function generateAssessmentStrategy(company, assessmentType) {
   });
 
   if (!user) {
-    return { success: false, errors: { _form: ["User not found."] } };
+    return { success: false, errors: { _form: [USER_NOT_FOUND_MESSAGE] } };
   }
 
   const prompt = buildSecurePrompt({
