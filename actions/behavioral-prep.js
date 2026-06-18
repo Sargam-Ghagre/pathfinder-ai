@@ -4,6 +4,7 @@ import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { generateAndParseJson } from "@/lib/ai-generation";
 import { generateGeminiContent } from "@/lib/gemini";
 import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
 
@@ -44,8 +45,7 @@ export async function generateAssessmentStrategy(company, assessmentType) {
   });
 
   try {
-    const aiResult = await generateGeminiContent(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = await generateAndParseJson(prompt);
     const record = await db.behavioralPrep.create({
       data: {
         userId: user.id,
