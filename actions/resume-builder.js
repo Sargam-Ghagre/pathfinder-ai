@@ -1,5 +1,5 @@
 "use server";
-
+import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { db } from "@/lib/prisma";
 import { getUserByClerkId } from "@/lib/user";
 import { auth } from "@clerk/nextjs/server";
@@ -12,7 +12,7 @@ import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function generateResumeContent(jobDescription) {
   const { userId } = await auth();
-  if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
+  if (!userId) return UNAUTHORIZED_RESPONSE;
 
   const limit = await checkRateLimit(userId, "resumeBuilder");
   if (!limit.allowed) {
