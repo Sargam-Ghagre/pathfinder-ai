@@ -156,7 +156,10 @@ describe("industry insights helper", () => {
       expect.objectContaining({
         tools: [{ googleSearchRetrieval: {} }],
       }),
-      expect.any(Object)
+      expect.objectContaining({
+        key: expect.stringMatching(/^industry:/),
+        ttl: 5 * 60 * 1000,
+      })
     );
     expect(mocks.cachedGenerateGeminiContent).toHaveBeenNthCalledWith(
       2,
@@ -164,7 +167,10 @@ describe("industry insights helper", () => {
       expect.objectContaining({
         generationConfig: { responseMimeType: "application/json" },
       }),
-      expect.any(Object)
+      expect.objectContaining({
+        key: expect.stringMatching(/^industry:/),
+        ttl: 5 * 60 * 1000,
+      })
     );
   });
 
