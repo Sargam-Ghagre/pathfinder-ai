@@ -6,6 +6,8 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { createErrorResponse } from "@/lib/action-errors";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 
 export async function buildReadme(style, boundaries, feedback) {
   const { userId } = await auth();
@@ -58,7 +60,7 @@ export async function buildReadme(style, boundaries, feedback) {
 
 export async function getManagerReadmes() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
   const user = await getUserByClerkId(userId);
   if (!user) return { success: false, data: [] };

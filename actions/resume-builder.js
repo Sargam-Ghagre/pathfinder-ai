@@ -9,6 +9,7 @@ import { parseAIJson } from "@/lib/validate";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 
 export async function generateResumeContent(jobDescription) {
   const { userId } = await auth();
@@ -102,7 +103,7 @@ export async function generateResumeContent(jobDescription) {
 
 export async function getResumeHistory() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
   const user = await getUserByClerkId(userId);
   if (!user) return { success: false, data: [] };
