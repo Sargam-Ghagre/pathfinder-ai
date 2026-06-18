@@ -1,5 +1,5 @@
 "use server";
-
+import { validateAuthenticatedUser } from "@/lib/auth-user";
 import { db } from "@/lib/prisma";
 import { getUserByClerkId } from "@/lib/user";
 import { auth } from "@clerk/nextjs/server";
@@ -29,7 +29,9 @@ export async function generateResumeContent(jobDescription) {
   }
 
   const user = await getUserByClerkId(userId);
-  if (!user) return { success: false, errors: { _form: ["User not found"] } };
+  if (!validateAuthenticatedUser(user)) {
+  return { success: false, errors: { _form: ["User not found"] } };
+}
 
   const prompt = buildSecurePrompt({
     context: buildUserProfileContext(user),
