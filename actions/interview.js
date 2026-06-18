@@ -571,11 +571,17 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
         throw new Error("Invalid questions structure received from AI.");
       }
 
-      return quizValidation.data.questions.slice(0, 10);
+      return {
+        questions: quizValidation.data.questions.slice(0, 10),
+        isFallback: false
+      };
     } catch (error) {
       console.error("AI Quiz generation failed, using fallback questions:", error);
       const industryId = user.industry?.split("-")[0]?.toLowerCase() || "tech";
-      return FallbackQuizPool[industryId] || TECH_FALLBACK_QUESTIONS;
+      return {
+        questions: FallbackQuizPool[industryId] || TECH_FALLBACK_QUESTIONS,
+        isFallback: true
+      };
     }
   } catch (error) {
     console.error("Quiz generation top-level error:", error);

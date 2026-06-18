@@ -10,6 +10,17 @@ import { coverLetterInputSchema } from "@/lib/schemas/forms";
 import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
+const FALLBACK_COVER_LETTER = `Dear Hiring Manager,
+
+I am writing to express my strong interest in the open position at your company. With a solid foundation of relevant skills and a proven track record of delivering high-quality results, I am confident in my ability to make an immediate impact on your team.
+
+Throughout my career, I have consistently demonstrated a commitment to excellence and a passion for continuous learning. I am particularly drawn to your company's mission and the innovative work you are doing in the industry. I believe my background aligns perfectly with the requirements of this role.
+
+Thank you for considering my application. I have attached my resume for your review and welcome the opportunity to discuss how my experience and skills would be an asset to your organization.
+
+Sincerely,
+[Your Name]`;
+
 /**
  * Generates a professional cover letter using Gemini AI with structured output validation.
  * Falls back to a safe template if AI generation or validation fails.
@@ -93,15 +104,22 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       },
     });
 
-    return coverLetter;
+    return { ...coverLetter, isFallback: false };
   } catch (error) {
-    console.error("Error generating cover letter:", error);
+    console.error("Error generating cover letter, using fallback:", error);
     if (process.env.NODE_ENV === "test") {
       throw error;
     }
+    
+    // We do not save fallback cover letters to the DB
     return {
-      success: false,
-      error: error?.message || "Failed to generate your cover letter. Please check your AI configuration."
+      content: FALLBACK_COVER_LETTER,
+      companyName,
+      jobTitle,
+      jobDescription,
+      status: "fallback",
+      userId: user.id,
+      isFallback: true
     };
   }
 }
