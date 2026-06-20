@@ -14,7 +14,9 @@ import { buildUserProfileContext } from "@/lib/ai-context";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { createErrorResponse } from "@/lib/action-errors";
-
+async function getResumeBuilderUser(userId) {
+  return getUserByClerkId(userId);
+}
 export async function generateResumeContent(jobDescription) {
   const { userId } = await auth();
   if (!userId) return UNAUTHORIZED_RESPONSE;
@@ -33,7 +35,7 @@ export async function generateResumeContent(jobDescription) {
     return { success: false, errors: { _form: ["Please provide a valid job description (at least 50 characters)."] } };
   }
   
-  const user = await getUserByClerkId(userId);
+  const user = await getResumeBuilderUser(userId);
   if (!validateAuthenticatedUser(user)) {
     return createErrorResponse("User not found");
   }
@@ -118,7 +120,7 @@ export async function getResumeHistory() {
   const { userId } = await auth();
   if (!userId) return EMPTY_HISTORY_RESPONSE;
 
-  const user = await getUserByClerkId(userId);
+  const user = await getResumeBuilderUser(userId);
   if (!user) return { success: false, data: [] };
 
   const records = await db.resumeGeneration.findMany({
