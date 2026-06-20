@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/user-errors";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
@@ -24,7 +25,7 @@ export async function generateExecutivePresence(formData) {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-    if (!user) throw new Error("User not found");
+    if (!user) throw new Error(USER_NOT_FOUND_MESSAGE);
 
     const targetAudience = formData.get("targetAudience");
     const currentChallenge = formData.get("currentChallenge");
