@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { isFeatureEnabled } from "@/lib/ai-gating";
 import { ATS_ANALYSIS_CACHE_TTL_MS, cachedGenerateGeminiContent, generateCacheKey } from "@/lib/cache";
+import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateInput, validateOutput, parseAIJson } from "@/lib/validate";
@@ -96,6 +97,11 @@ Be specific and actionable. Include at least 5 matched keywords (if present), at
 IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.`,
     });
 
+    const result = await cachedGenerateGeminiContent(prompt, {}, {
+      key: generateCacheKey("ats", user.id, buildUserProfileContext(user), resumeContent, jobDescription),
+      ttl: ATS_ANALYSIS_CACHE_TTL_MS,
+    });
+    const parsedAnalysis = parseAIJson(result.response.text());
     const cacheKey = generateCacheKey(
       "ats",
       resumeContent,
