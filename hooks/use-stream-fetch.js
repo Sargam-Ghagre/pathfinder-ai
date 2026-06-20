@@ -111,7 +111,7 @@ export default function useStreamFetch() {
           prompt,
           conversationId,
         }),
-        signal: controller.signal,
+        signal: signalToUse,
       });
 
       if (!response.ok) {
