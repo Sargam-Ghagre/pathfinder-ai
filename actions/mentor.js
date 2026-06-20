@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { getCurrentUser } from "@/lib/current-user";
 
 export async function generateMentorPlan(goals, targetIndustry) {
   const { userId } = await auth();
