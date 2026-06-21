@@ -68,6 +68,10 @@ export async function sendCoffeeChatMessage(sessionId, userMessage) {
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
+  const session = await db.coffeeChatSession.findFirst({
+    where: { id: sessionId, userId: user.id },
+  });
+  if (!session) return { success: false, errors: { _form: ["Session not found"] } };
   const session = await db.coffeeChatSession.findUnique({ 
     where: { id: sessionId, userId: user.id } 
   });
@@ -117,6 +121,10 @@ export async function generateCoffeeChatFeedback(sessionId) {
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
+  const session = await db.coffeeChatSession.findFirst({
+    where: { id: sessionId, userId: user.id },
+  });
+  if (!session) return { success: false, errors: { _form: ["Session not found"] } };
   const session = await db.coffeeChatSession.findUnique({ 
     where: { id: sessionId, userId: user.id } 
   });
